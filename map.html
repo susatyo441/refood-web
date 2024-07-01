@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rute ke Tempat Tujuan</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYM-zUBIaPKQGpb72WGuqQWEwHtgavQ08&libraries=places"></script>
+    <style>
+      #map {
+        height: 100vh;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <script>
+      let map;
+      let directionsService;
+      let directionsRenderer;
+      let userLocation;
+
+      function initMap() {
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer();
+
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: -6.2, lng: 106.816666 },
+          zoom: 14,
+        });
+
+        directionsRenderer.setMap(map);
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              userLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              };
+
+              map.setCenter(userLocation);
+
+              const urlParams = new URLSearchParams(window.location.search);
+              const destinationLat = parseFloat(urlParams.get("lat"));
+              const destinationLng = parseFloat(urlParams.get("lng"));
+              const destinationName = urlParams.get("name");
+              const destinationAddress = urlParams.get("address");
+
+              const destination = { lat: destinationLat, lng: destinationLng };
+
+              const request = {
+                origin: userLocation,
+                destination: destination,
+                travelMode: google.maps.TravelMode.DRIVING,
+              };
+
+              directionsService.route(request, (result, status) => {
+                if (status == google.maps.DirectionsStatus.OK) {
+                  directionsRenderer.setDirections(result);
+                }
+              });
+
+              new google.maps.Marker({
+                position: destination,
+                map,
+                title: `${destinationName}\n${destinationAddress}`,
+              });
+            },
+            () => {
+              handleLocationError(true, map.getCenter());
+            }
+          );
+        } else {
+          handleLocationError(false, map.getCenter());
+        }
+      }
+
+      function handleLocationError(browserHasGeolocation, pos) {
+        const infoWindow = new google.maps.InfoWindow();
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(
+          browserHasGeolocation
+            ? "Error: The Geolocation service failed."
+            : "Error: Your browser doesn't support geolocation."
+        );
+        infoWindow.open(map);
+      }
+
+      // Initialize the map
+      window.onload = initMap;
+    </script>
+  </body>
+</html>
