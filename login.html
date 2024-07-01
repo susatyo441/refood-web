@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Organization</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav class="bg-green-800 p-2">
+      <div class="container mx-auto flex justify-between items-center">
+        <a href="index.html" class="text-white text-lg font-bold">R3-food</a>
+      </div>
+    </nav>
+
+    <div class="container mx-auto p-4">
+      <h2 class="text-2xl font-bold mb-4">Login Yayasan</h2>
+      <form id="loginForm">
+        <div class="mb-4">
+          <label for="email" class="block text-sm font-medium text-gray-700"
+            >Email:</label
+          >
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+        <div class="mb-4">
+          <label for="password" class="block text-sm font-medium text-gray-700"
+            >Password:</label
+          >
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+        <div class="mb-4">
+          <button
+            type="submit"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Login
+          </button>
+        </div>
+      </form>
+      <div id="response" class="mt-4"></div>
+      <p class="mt-4 text-gray-700">
+        Tidak punya akun?
+        <a href="register.html" class="text-blue-500 hover:text-blue-700"
+          >Daftar di sini</a
+        >.
+      </p>
+    </div>
+
+    <script>
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          fetch("http://34.128.70.236/auth/login-organization", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.token) {
+                localStorage.setItem("user", JSON.stringify(data.user));
+                localStorage.setItem("bearerToken", data.token);
+                window.location.href = "user.html";
+              } else {
+                document.getElementById("response").innerText =
+                  "Login failed: " + (data.message || "Unknown error");
+              }
+            })
+            .catch((error) => {
+              document.getElementById("response").innerText = "Error: " + error;
+            });
+        });
+    </script>
+  </body>
+</html>

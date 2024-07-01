@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Form Permintaan Makanan</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav class="bg-green-800 p-2">
+      <div class="container mx-auto flex justify-between items-center">
+        <a href="index.html" class="text-white text-lg font-bold">R3-food</a>
+        <div>
+          <a href="form.html" class="text-gray-300 hover:text-white mx-2"
+            >Form Permintaan</a
+          >
+          <a href="user.html" class="text-gray-300 hover:text-white mx-2"
+            >List Permintaan</a
+          >
+          <button id="logoutBtn" class="text-gray-300 hover:text-white mx-2">
+            Logout
+          </button>
+        </div>
+      </div>
+    </nav>
+    <div class="container bg-white shadow-md rounded-lg p-6 mx-auto mt-4">
+      <h2 class="text-2xl font-bold mb-4">Form Permintaan Makanan</h2>
+      <form id="postForm">
+        <div class="mb-4">
+          <label for="request" class="block text-sm font-medium text-gray-700"
+            >Permintaan:</label
+          >
+          <input
+            type="text"
+            id="request"
+            name="request"
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+        <div class="mb-4">
+          <button
+            type="submit"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Kirim Permintaan
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      document
+        .getElementById("logoutBtn")
+        .addEventListener("click", function () {
+          localStorage.removeItem("bearerToken");
+          window.location.href = "index.html";
+        });
+
+      document
+        .getElementById("postForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          // Get the Bearer token from secure storage (local storage for this example)
+          const token = localStorage.getItem("bearerToken"); // Replace this with actual secure storage retrieval method
+
+          if (!token) {
+            alert("Bearer token not found");
+            return;
+          }
+
+          const requestPayload = {
+            request: document.getElementById("request").value,
+          };
+
+          fetch("http://34.128.70.236/post/request", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(requestPayload),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              window.location.href = "user.html";
+              if (data.success) {
+                // Adjust this condition based on actual API response
+                window.location.href = "user.html";
+              }
+            })
+            .catch((error) => {
+              document.getElementById("response").innerText = "Error: " + error;
+            });
+        });
+    </script>
+  </body>
+</html>

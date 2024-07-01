@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Requests List</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .card:hover {
+        transform: scale(1.05);
+        transition: transform 0.2s;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="bg-green-800 p-2">
+      <div class="container mx-auto flex justify-between items-center">
+        <a href="index.html" class="text-white text-lg font-bold">R3-food</a>
+        <div>
+          <a href="form.html" class="text-gray-300 hover:text-white mx-2"
+            >Form Permintaan</a
+          >
+          <a href="user.html" class="text-gray-300 hover:text-white mx-2"
+            >List Permintaan</a
+          >
+          <button id="logoutBtn" class="text-gray-300 hover:text-white mx-2">
+            Logout
+          </button>
+        </div>
+      </div>
+    </nav>
+    <div class="container mx-auto p-4">
+      <h3 class="text-xl font-bold mb-4">Requests List</h3>
+      <div id="loading" class="loader" style="display: none">Loading...</div>
+      <div
+        id="requestsList"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+      ></div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const token = localStorage.getItem("bearerToken"); // Replace this with actual secure storage retrieval method
+
+        if (!token) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        function fetchRequests() {
+          document.getElementById("loading").style.display = "block";
+
+          fetch("http://34.128.70.236/post/user-org", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          })
+            .then((response) => {
+              if (response.status === 403 || response.status === 401) {
+                localStorage.removeItem("bearerToken");
+                window.location.href = "login.html";
+              }
+              return response.json();
+            })
+            .then((data) => {
+              document.getElementById("loading").style.display = "none";
+              displayRequests(data);
+            })
+            .catch((error) => {
+              document.getElementById("loading").style.display = "none";
+              console.error("Error fetching requests:", error);
+            });
+        }
+
+        function displayRequests(requests) {
+          const requestsList = document.getElementById("requestsList");
+          requestsList.innerHTML = "";
+
+          requests.forEach((request) => {
+            const card = document.createElement("div");
+            card.className =
+              "card bg-white shadow-md rounded-lg overflow-hidden cursor-pointer p-4";
+
+            const img = document.createElement("img");
+            img.src =
+              request.user.profilePicture || "https://via.placeholder.com/150";
+            img.alt = request.user.name;
+            img.className = "w-full h-32 object-cover rounded";
+
+            const cardBody = document.createElement("div");
+            cardBody.className = "mt-4";
+
+            const cardTitle = document.createElement("h4");
+            cardTitle.className = "font-bold text-lg";
+            cardTitle.textContent = request.request;
+
+            const cardUser = document.createElement("p");
+            cardUser.className = "text-gray-700";
+            cardUser.textContent = request.user.name;
+
+            const cardAddress = document.createElement("p");
+            cardAddress.className = "text-gray-500";
+            cardAddress.textContent = request.user.address;
+
+            const cardEmail = document.createElement("p");
+            cardEmail.className = "text-gray-500";
+            cardEmail.textContent = request.user.email;
+
+            const cardCreatedAt = document.createElement("p");
+            cardCreatedAt.className = "text-gray-400 text-sm";
+            cardCreatedAt.textContent = new Date(
+              request.createdAt
+            ).toLocaleString();
+
+            const deleteButton = document.createElement("button");
+            deleteButton.className =
+              "mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded";
+            deleteButton.textContent = "Delete";
+            deleteButton.addEventListener("click", () =>
+              deleteRequest(request.id)
+            );
+
+            cardBody.appendChild(cardTitle);
+            cardBody.appendChild(cardUser);
+            cardBody.appendChild(cardAddress);
+            cardBody.appendChild(cardEmail);
+            cardBody.appendChild(cardCreatedAt);
+            cardBody.appendChild(deleteButton);
+
+            card.appendChild(img);
+            card.appendChild(cardBody);
+            requestsList.appendChild(card);
+          });
+        }
+
+        function deleteRequest(requestId) {
+          const confirmDelete = confirm(
+            "Are you sure you want to delete this request?"
+          );
+          if (!confirmDelete) return;
+
+          fetch(`http://34.128.70.236/post/delete-request/${requestId}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              alert("Request deleted successfully");
+              fetchRequests();
+            })
+            .catch((error) => {
+              alert("Request deleted successfully");
+              fetchRequests();
+            });
+        }
+
+        fetchRequests();
+      });
+
+      document
+        .getElementById("logoutBtn")
+        .addEventListener("click", function () {
+          localStorage.removeItem("bearerToken");
+          window.location.href = "index.html";
+        });
+    </script>
+  </body>
+</html>
